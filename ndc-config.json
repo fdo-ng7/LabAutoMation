@@ -1,4 +1,7 @@
 {
+  "configuration": {
+    "basename" : "ndclab"
+  },
   "physical": {
     "vcenter": {
       "ip": "10.159.81.248",
@@ -8,20 +11,23 @@
     "tftp_svr": "10.159.81.200"
   },
   "nested": {
-    "esxi": {
-      "esx01": {
+    "esxi": [
+      {
         "ip": "10.10.10.01"
       },
-      "esx02": {
+      {
         "ip": "10.10.10.02"
       },
-      "esx03": {
+      {
         "ip": "10.10.10.03"
-      },
+      }
+      ],
       "config": {
         "cpu": "4",
         "mem": "8",
         "esxversion": "ESXiv5.5u2",
+        "nic_count": "2",
+        "nic_type": "VMXNET3",
         "rootpw": "VMWare1!"
       }
     },
@@ -33,5 +39,5 @@
       "dns": "10.159.81.20",
       "ntp": ""
     }
-  }
+
 }

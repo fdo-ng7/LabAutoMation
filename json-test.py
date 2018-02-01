@@ -8,4 +8,5 @@ import json
 with open('./ndc-config.json') as json_file:
     data = json.load(json_file)
 
-print data['physical']
+print data['physical']['vcenter']['username']
+print data['physical']['vcenter']['ip']
