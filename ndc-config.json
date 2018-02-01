@@ -1,0 +1,37 @@
+{
+  "physical": {
+    "vcenter": {
+      "ip": "10.159.81.248",
+      "username": "ansible@vsphere.local",
+      "password": "Passw0rd!"
+    },
+    "tftp_svr": "10.159.81.200"
+  },
+  "nested": {
+    "esxi": {
+      "esx01": {
+        "ip": "10.10.10.01"
+      },
+      "esx02": {
+        "ip": "10.10.10.02"
+      },
+      "esx03": {
+        "ip": "10.10.10.03"
+      },
+      "config": {
+        "cpu": "4",
+        "mem": "8",
+        "esxversion": "ESXiv5.5u2",
+        "rootpw": "VMWare1!"
+      }
+    },
+    "vcip": "10.10.10.10",
+    "iscsiip": "10.10.10.11",
+    "network": {
+      "gateway": "10.10.10.1",
+      "subnet": "255.255.255.0",
+      "dns": "10.159.81.20",
+      "ntp": ""
+    }
+  }
+}

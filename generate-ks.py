@@ -156,6 +156,7 @@ def main():
     outfile.close()
     print "BootCFG file created -- ", outboot
 
+    print "Transfering Files to: "
     import os
     os.system("scp " + outks + " root@10.159.81.200:/tmp/")
 

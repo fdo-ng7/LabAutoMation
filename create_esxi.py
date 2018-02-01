@@ -5,6 +5,9 @@
 """
 vSphere SDK for Python program for creating tiny VMs (1vCPU/128MB) with random
 names using the Marvel Comics API
+Updates:
+    01/31/2018 - FNG Edited code to blank Create ESXI VMs
+        - VMs Specs MEM, CPU, 2xVMXNet Nic, 8GB HDD, HVH Enabled.
 """
 
 import atexit
