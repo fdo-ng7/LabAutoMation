@@ -9,8 +9,14 @@
         01/31/2018 - Created This file
 """
 import json
-with open('./ndc-config.json') as json_file:
+import os
+jsonfile = "ndc-config.json"
+script_path = os.path.dirname(os.path.abspath(__file__))
+# print script_path
+jsonpath = script_path + "/" + jsonfile
+with open(jsonpath) as json_file:
     jdata = json.load(json_file)
+
 
 # Physical Infrastructure Information
 vc_ip = jdata['physical']['vcenter']['ip']
