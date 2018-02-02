@@ -4,9 +4,9 @@
   },
   "physical": {
     "vcenter": {
-      "ip": "10.159.81.248",
-      "username": "ansible@vsphere.local",
-      "password": "Passw0rd!"
+      "ip": "10.158.47.100",
+      "username": "administrator@vsphere.local",
+      "password": "vmware"
     },
     "tftp_svr": "10.159.81.200"
   },
@@ -23,8 +23,8 @@
       }
       ],
       "config": {
-        "cpu": "4",
-        "mem": "8",
+        "cpu": 4,
+        "mem": 8,
         "esxversion": "ESXiv5.5u2",
         "nic_count": "2",
         "nic_type": "VMXNET3",

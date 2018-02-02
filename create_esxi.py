@@ -5,9 +5,18 @@
 """
 vSphere SDK for Python program for creating tiny VMs (1vCPU/128MB) with random
 names using the Marvel Comics API
+Syntax:
+    Executing as script:
+    create_esxi.py -h hosts -u user -p password -d datastore -n name -v vCpu
+    -m memorymb -g guestId
+    Execting as module:
+        import create_esxi
+        create_esxi_vm()
 Updates:
     01/31/2018 - FNG Edited code to blank Create ESXI VMs
         - VMs Specs MEM, CPU, 2xVMXNet Nic, 8GB HDD, HVH Enabled.
+        - Default 8GB and 4cpu
+
 """
 
 import atexit
@@ -31,16 +40,35 @@ def get_args():
     """
     parser = cli.build_arg_parser()
 
-    parser.add_argument('-c', '--count',
-                        type=int,
-                        required=True,
-                        action='store',
-                        help='Number of VMs to create')
-
     parser.add_argument('-d', '--datastore',
                         required=True,
                         action='store',
                         help='Name of Datastore to create VM in')
+
+    parser.add_argument('-n', '--name',
+                        required=True,
+                        action='store',
+                        help='Name for VM')
+
+    parser.add_argument('-m', '--memorymb',
+                        required=False,
+                        action='store',
+                        help='Memory in MB')
+
+    parser.add_argument('-v', '--vcpunum',
+                        required=False,
+                        action='store',
+                        help='Number of CPU')
+
+    parser.add_argument('-w', '--network',
+                        required=True,
+                        action='store',
+                        help='VDS Portgroup')
+
+    parser.add_argument('-g', '--guestid',
+                        required=False,
+                        action='store',
+                        help='Guest ID for ESXI version')
 
     args = parser.parse_args()
 
@@ -58,77 +86,7 @@ def get_obj(content, vimtype, name):
     return obj
 
 
-def get_marvel_characters(number_of_characters, marvel_public_key,
-                          marvel_private_key):
-    """Makes an API call to the Marvel Comics developer API
-        to get a list of character names.
-
-    :param number_of_characters: int Number of characters to fetch.
-    :param marvel_public_key: String Public API key from Marvel
-    :param marvel_private_key: String Private API key from Marvel
-    :rtype list: Containing names of characters
-    """
-    timestamp = str(int(time.time()))
-    # hash is required as part of request which is
-    # md5(timestamp + private + public key)
-    hash_value = hashlib.md5(timestamp + marvel_private_key +
-                             marvel_public_key).hexdigest()
-
-    characters = []
-    for _num in xrange(number_of_characters):
-        # randomly select one of the 1478 Marvel characters
-        offset = random.randrange(1, 1478)
-        limit = '1'
-
-        # GET /v1/public/characters
-        url = ('http://gateway.marvel.com:80/v1/public/characters?limit=' +
-               limit + '&offset=' + str(offset) + '&apikey=' +
-               marvel_public_key + '&ts=' + timestamp + '&hash=' + hash_value)
-
-        headers = {'content-type': 'application/json'}
-        request = requests.get(url, headers=headers)
-        data = json.loads(request.content)
-        if data.get('code') == 'InvalidCredentials':
-            raise RuntimeError('Your Marvel API keys do not work!')
-
-        # retrieve character name & replace spaces with underscore so we don't
-        # have spaces in our VM names
-        character = data['data']['results'][0]['name'].strip().replace(' ',
-                                                                       '_')
-        characters.append(character)
-    return characters
-
-
-def create_dummy_vm(name, service_instance, vm_folder, resource_pool,
-                    datastore):
-    """Creates a dummy VirtualMachine with 1 vCpu, 128MB of RAM.
-
-    :param name: String Name for the VirtualMachine
-    :param service_instance: ServiceInstance connection
-    :param vm_folder: Folder to place the VirtualMachine in
-    :param resource_pool: ResourcePool to place the VirtualMachine in
-    :param datastore: DataStrore to place the VirtualMachine on
-    """
-    vm_name = 'MARVEL-' + name
-    datastore_path = '[' + datastore + '] ' + vm_name
-
-    # bare minimum VM shell, no disks. Feel free to edit
-    vmx_file = vim.vm.FileInfo(logDirectory=None,
-                               snapshotDirectory=None,
-                               suspendDirectory=None,
-                               vmPathName=datastore_path)
-
-    config = vim.vm.ConfigSpec(name=vm_name, memoryMB=128, numCPUs=1,
-                               files=vmx_file, guestId='vmkernel6Guest',
-                               version='vmx-11')
-
-    print "Creating VM {}...".format(vm_name)
-    task = vm_folder.CreateVM_Task(config=config, pool=resource_pool)
-    tasks.wait_for_tasks(service_instance, [task])
-
 # port_find and search_port script required to find VDS PG
-
-
 def port_find(dvs, key):
     obj = None
     ports = dvs.FetchDVPorts()
@@ -152,7 +110,7 @@ def search_port(dvs, portgroupkey):
 
 
 def create_esxi_vm(name, service_instance, vm_folder, resource_pool,
-                   datastore):
+                   datastore, memory, vcpu, network, guestid):
     """Creates a dummy VirtualMachine with 1 vCpu, 128MB of RAM.
 
     :param name: String Name for the VirtualMachine
@@ -161,16 +119,26 @@ def create_esxi_vm(name, service_instance, vm_folder, resource_pool,
     :param resource_pool: ResourcePool to place the VirtualMachine in
     :param datastore: DataStrore to place the VirtualMachine on
     """
+    content = service_instance.RetrieveContent()
+
+    if get_obj(content, [vim.VirtualMachine], name):
+        print "VM with name: ", name, " already exists..."
+        return 0
+
     network_pxe = "pxe"
     network_vm = "MGMT"
     nic_type = "VMXNET3"
-    vm_name = 'MARVEL-' + name
+    vm_name = name
     disk_size = 8
     disk_type = "thin"
     datastore_path = '[' + datastore + '] ' + vm_name
+    if memory is None:
+        memory = 8192
+    if vcpu is None:
+        vcpu = 4
+    if guestid is None:
+        guestid = 'vmkernel6Guest'
 
-    content = service_instance.RetrieveContent()
-    # bare minimum VM shell, no disks. Feel free to edit
     vmx_file = vim.vm.FileInfo(logDirectory=None,
                                snapshotDirectory=None,
                                suspendDirectory=None,
@@ -315,29 +283,14 @@ def create_esxi_vm(name, service_instance, vm_folder, resource_pool,
     disk_spec.device.controllerKey = 0
     device_changes.append(disk_spec)
 
-    config = vim.vm.ConfigSpec(name=vm_name, memoryMB=128, numCPUs=1,
-                               files=vmx_file, guestId='vmkernel6Guest',
+    config = vim.vm.ConfigSpec(name=vm_name, memoryMB=8192, numCPUs=4,
+                               files=vmx_file, guestId=guestid,
                                version='vmx-11', deviceChange=device_changes,
                                nestedHVEnabled=True)
 
     print "Creating VM {}...".format(vm_name)
     task = vm_folder.CreateVM_Task(config=config, pool=resource_pool)
     tasks.wait_for_tasks(service_instance, [task])
-
-
-def add_controller(vm):
-    vm.ReconfigVM_Task(
-        spec=vim.vm.ConfigSpec(
-            deviceChange=[
-                vim.vm.device.VirtualDeviceSpec(
-                    operation=vim.vm.device.VirtualDeviceSpec.Operation.add,
-                    device=vim.vm.device.VirtualLsiLogicSASController(
-                        sharedBus=vim.vm.device.VirtualSCSIController.Sharing.noSharing
-                    ),
-                )
-            ]
-        )
-    )
 
 
 def main():
@@ -371,15 +324,11 @@ def main():
     vmfolder = datacenter.vmFolder
     hosts = datacenter.hostFolder.childEntity
     resource_pool = hosts[0].resourcePool
-
-    characters = "esx01", "esx02"
-
-    for name in characters:
-        # create_dummy_vm(name, service_instance, vmfolder, resource_pool,
-        #                 args.datastore)
-        create_esxi_vm(name, service_instance, vmfolder, resource_pool,
-                       args.datastore)
-        print "Creating -- ", name
+    name = args.name
+    print "Creating -- ", name
+    create_esxi_vm(name, service_instance, vmfolder, resource_pool,
+                   args.datastore, args.memorymb, args.vcpunum,
+                   args.network, args.guestid)
     return 0
 
 
