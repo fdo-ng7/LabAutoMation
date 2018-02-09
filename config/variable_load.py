@@ -26,11 +26,21 @@ tftp_svr = jdata['physical']['tftp_svr']
 esxi_list = jdata['nested']['esxi']
 basename = jdata['config']['basename']
 foldername = jdata['config']['foldername']
+
+# Nested VM Config
 esxi_cpu = jdata['nested']['config']['cpu']
 esxi_mem = jdata['nested']['config']['mem']
 guest_id = jdata['nested']['config']['guestid']
 esxi_version = jdata['nested']['config']['esxversion']
 esxi_rootpw = jdata['nested']['config']['rootpw']
 vm_version = jdata['nested']['config']['vmx_version']
+
+# Network
 vm_network = jdata['network']['portgroup']
+pg_vlan = jdata['network']['pg_vlan']
+vm_gateway = jdata['network']['gateway']
+vm_subnet = jdata['network']['subnet']
+vm_dns = jdata['network']['dns']
+
+iscsitarget = jdata['iscsiip']
 dest_datastore = jdata['datastore']

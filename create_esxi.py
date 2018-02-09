@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# William lam
-# www.virtuallyghetto.com
+# FNG
 
 """
-vSphere SDK for Python program for creating tiny VMs (1vCPU/128MB) with random
-names using the Marvel Comics API
+Script to blank VM to be used as nested ESXI host. Target vCenter requires to
+to be configure with isolated pxe pg and network.
 Syntax:
     Executing as script:
     create_esxi.py -h hosts -u user -p password -d datastore -n name -v vCpu
@@ -19,7 +18,7 @@ Updates:
         - Creates NICs and Attaches to VDS
     02/01/2018 - NIC can only be attached to VDS - Static Binding PG
         - Added create_nic_backing function to handle ephemeral and
-        staticbinding ports.
+        static binding ports, as well as standard switch ports
 
 """
 
@@ -126,41 +125,56 @@ def search_port(dvs, portgroupkey):
 
 
 # creates port backing for ephemeral and static binding
+# added support to standard pg
 # returns nicspec.device.baking
 # reference: https://github.com/vmware/pyvmomi-community-samples/blob/master/samples/change_vm_vif.py
-def create_nic_backing(portgroup):
-
-    nic_type = portgroup.config.type
-    if nic_type == "ephemeral":
-        print "Create ephemeral device.backing"
-        dvs = portgroup.config.distributedVirtualSwitch
-        #portKey = search_port(dvs, portgroup.key)
-        #port = port_find(dvs, portKey)
-        device_backing = \
-            vim.vm.device.VirtualEthernetCard.DistributedVirtualPortBackingInfo()
-        device_backing.port = vim.dvs.PortConnection()
-        device_backing.port.portgroupKey = portgroup.key
-        # print portgroup.config.distributedVirtualSwitch.uuid
-        device_backing.port.switchUuid = portgroup.config.distributedVirtualSwitch.uuid
-        #device_backing.port.portKey = portgroup.key
-        return device_backing
-    elif nic_type == "earlyBinding":
-        print "Create static device.backing"
-        dvs = portgroup.config.distributedVirtualSwitch
-        portKey = search_port(dvs, portgroup.key)
-        port = port_find(dvs, portKey)
-        device_backing = \
-            vim.vm.device.VirtualEthernetCard.DistributedVirtualPortBackingInfo()
-        device_backing.port = vim.dvs.PortConnection()
-        device_backing.port.portgroupKey = port.portgroupKey
-        device_backing.port.switchUuid = port.dvsUuid
-        device_backing.port.portKey = port.key
-        # print "portgroup info =  ", port
-        return device_backing
+def create_nic_backing(content, network):
+    portgroup = None
+    portgroup = get_obj(content,
+                        [vim.dvs.DistributedVirtualPortgroup], network)
+    if portgroup:
+        nic_type = portgroup.config.type
+        if nic_type == "ephemeral":
+            print " - Create ephemeral device.backing"
+            dvs = portgroup.config.distributedVirtualSwitch
+            #portKey = search_port(dvs, portgroup.key)
+            #port = port_find(dvs, portKey)
+            device_backing = \
+                vim.vm.device.VirtualEthernetCard.DistributedVirtualPortBackingInfo()
+            device_backing.port = vim.dvs.PortConnection()
+            device_backing.port.portgroupKey = portgroup.key
+            # print portgroup.config.distributedVirtualSwitch.uuid
+            device_backing.port.switchUuid = portgroup.config.distributedVirtualSwitch.uuid
+            #device_backing.port.portKey = portgroup.key
+            return device_backing
+        elif nic_type == "earlyBinding":
+            print " - Create static device.backing"
+            dvs = portgroup.config.distributedVirtualSwitch
+            portKey = search_port(dvs, portgroup.key)
+            port = port_find(dvs, portKey)
+            device_backing = \
+                vim.vm.device.VirtualEthernetCard.DistributedVirtualPortBackingInfo()
+            device_backing.port = vim.dvs.PortConnection()
+            device_backing.port.portgroupKey = port.portgroupKey
+            device_backing.port.switchUuid = port.dvsUuid
+            device_backing.port.portKey = port.key
+            # print "portgroup info =  ", port
+            return device_backing
+        else:
+            print "Can't Configure nic_type : ", nic_type
+            print "Update Code in create_nic_backing()"
+            return -1
     else:
-        print "Can't Configure nic_type : ", nic_type
-        print "Update Code in create_nic_backing()"
-        return -1
+        portgroup = get_obj(content, [vim.Network], network)
+        if portgroup is None:
+            print "Can't find portgroup - ", network
+            return -1
+        else:
+            device_backing = \
+                vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
+            device_backing.network = portgroup
+            device_backing.deviceName = network
+            return device_backing
 
 
 def create_esxi_vm(name, service_instance, vm_folder, resource_pool,
@@ -179,8 +193,8 @@ def create_esxi_vm(name, service_instance, vm_folder, resource_pool,
         print "VM with name: ", name, " already exists..."
         return 0
 
-    network_pxe = "vmnetwork-vds"
-    network_vm = "vmnetwork-vds"
+    network_pxe = "pxe"
+    network_vm = network
     nic_type = "VMXNET3"
     vm_name = name
     disk_size = 8
@@ -206,19 +220,12 @@ def create_esxi_vm(name, service_instance, vm_folder, resource_pool,
 
     # Addig Network Device 1 - VDS SWitch - ephemeral and static
     # Gather PG and VDS info
-    portgroup = None
-    portgroup = get_obj(content,
-                        [vim.dvs.DistributedVirtualPortgroup], network_pxe)
-    print "Creating NIC 1 on portgroup - ", network_pxe
-    if portgroup is None:
-        print("Portgroup" + portgroup + " not Found in DVS ...")
-        exit(0)
-
+    print " - Adding NIC 1 on portgroup - ", network_pxe
     nic_spec = vim.vm.device.VirtualDeviceSpec()
     nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
     nic_spec.device = vim.vm.device.VirtualVmxnet3()
     nic_spec.device.deviceInfo = vim.Description()
-    nic_spec.device.backing = create_nic_backing(portgroup)
+    nic_spec.device.backing = create_nic_backing(content, network_pxe)
     nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
     nic_spec.device.connectable.startConnected = True
     nic_spec.device.connectable.allowGuestControl = True
@@ -230,19 +237,12 @@ def create_esxi_vm(name, service_instance, vm_folder, resource_pool,
 
     # Addig Network Device 2 - VDS SWitch
     # Gather PG and VDS info
-    print "Creating NIC 2 on portgroup - ", network_vm
-    portgroup = None
-    portgroup = get_obj(content,
-                        [vim.dvs.DistributedVirtualPortgroup], network_pxe)
-    if portgroup is None:
-        print("Portgroup" + portgroup + " not Found in DVS ...")
-        exit(0)
-
+    print " - Adding NIC 2 on portgroup - ", network_vm
     nic_spec = vim.vm.device.VirtualDeviceSpec()
     nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.add
     nic_spec.device = vim.vm.device.VirtualVmxnet3()
     nic_spec.device.deviceInfo = vim.Description()
-    nic_spec.device.backing = create_nic_backing(portgroup)
+    nic_spec.device.backing = create_nic_backing(content, network_vm)
     nic_spec.device.connectable = vim.vm.device.VirtualDevice.ConnectInfo()
     nic_spec.device.connectable.startConnected = True
     nic_spec.device.connectable.allowGuestControl = True

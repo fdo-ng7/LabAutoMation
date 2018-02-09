@@ -9,7 +9,7 @@
       "username": "ansible@vsphere.local",
       "password": "Passw0rd!"
     },
-    "tftp_svr": "10.159.81.200"
+    "tftp_svr": "ansible@10.159.81.200"
   },
   "nested": {
     "esxi": [
@@ -25,8 +25,8 @@
       ],
       "config": {
         "cpu": 4,
-        "mem": 8,
-        "esxversion": "ESXiv5.5u2",
+        "mem": 16384,
+        "esxversion":  "ESXi6.0u2",
         "nic_count": "2",
         "nic_type": "VMXNET3",
         "rootpw": "VMWare1!",
@@ -38,6 +38,7 @@
     "iscsiip": "10.10.10.11",
     "network": {
       "portgroup" : "VTest",
+      "pg_vlan" : "33",
       "gateway": "10.10.10.1",
       "subnet": "255.255.255.0",
       "dns": "10.159.81.20",

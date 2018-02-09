@@ -1,0 +1,12 @@
+DEFAULT /Images/ESXi5.5u2/menu.c32
+MENU TITLE ESXi-5.5.2-2068190-full Boot Menu
+NOHALT 1
+PROMPT 0
+TIMEOUT 80
+LABEL install
+  KERNEL /Images/ESXi5.5u2/mboot.c32
+   APPEND -c /pxelinux.cfg/boot/01-00-50-56-89-0c-5fboot.cfg ks=http://10.10.10.5/KS/01-00-50-56-89-0c-5f.cfg +++
+MENU LABEL ESXi-=ESXi-5.5.2-2068190-full Installer
+LABEL hddboot
+ LOCALBOOT 0x80
+ MENU LABEL ^Boot from local disk
