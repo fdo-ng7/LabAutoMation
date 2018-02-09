@@ -8,4 +8,5 @@ print "vCenter IP", vc_ip
 print "vCenter UID ", vc_user
 print "vCenter PWD", vc_pwd
 print len(esxi_list)
-print jdata['nested']
+# print jdata['nested']
+print "VMX Version - ", vm_version
