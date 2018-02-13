@@ -10,7 +10,7 @@
 """
 import json
 import os
-jsonfile = "ndc-config.json"
+jsonfile = "qalabasr-config.json"
 script_path = os.path.dirname(os.path.abspath(__file__))
 # print script_path
 jsonpath = script_path + "/" + jsonfile
@@ -23,6 +23,7 @@ vc_ip = jdata['physical']['vcenter']['ip']
 vc_user = jdata['physical']['vcenter']['username']
 vc_pwd = jdata['physical']['vcenter']['password']
 tftp_svr = jdata['physical']['tftp_svr']
+
 esxi_list = jdata['nested']['esxi']
 basename = jdata['config']['basename']
 foldername = jdata['config']['foldername']
@@ -42,5 +43,5 @@ vm_gateway = jdata['network']['gateway']
 vm_subnet = jdata['network']['subnet']
 vm_dns = jdata['network']['dns']
 
-iscsitarget = jdata['iscsiip']
+iscsitarget = jdata['iscsiserver']['ip']
 dest_datastore = jdata['datastore']

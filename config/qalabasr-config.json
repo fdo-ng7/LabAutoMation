@@ -1,7 +1,7 @@
 {
   "config": {
-    "basename" : "ndclab",
-    "foldername" : "ndclab"
+    "basename" : "qalab1asr",
+    "foldername" : "qalab1asr"
   },
   "physical": {
     "vcenter": {
@@ -14,38 +14,34 @@
   "nested": {
     "esxi": [
       {
-        "ip": "10.10.10.11"
+        "ip": "10.159.42.31"
       },
       {
-        "ip": "10.10.10.12"
-      },
-      {
-        "ip": "10.10.10.13"
+        "ip": "10.159.42.32"
       }
       ],
       "config": {
-        "cpu": 4,
-        "mem": 16384,
+        "cpu": 32,
+        "mem": 65536,
         "esxversion":  "ESXi6.0u2",
         "nic_count": "2",
         "nic_type": "VMXNET3",
-        "rootpw": "VMWare1!",
+        "rootpw": "Vmware123!",
         "vmx_version": "vmx-11",
         "guestid": "vmkernel6Guest"
       }
     },
-    "vcip": "10.10.10.10",
-    "iscsiip": "10.10.10.100",
+    "vcip": "10.159.42.21",
     "network": {
       "portgroup" : "VTest",
-      "pg_vlan" : "33",
-      "gateway": "10.10.10.1",
+      "pg_vlan" : "42",
+      "gateway": "10.159.42.1",
       "subnet": "255.255.255.0",
       "dns": "10.159.81.20",
       "ntp": ""
     },
     "iscsiserver":{
-        "ip": "10.10.10.10",
+        "ip": "10.159.42.200",
         "name": "iscsitore01"
   },
   "datastore": "Nested-Datastore01"

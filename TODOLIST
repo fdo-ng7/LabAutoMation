@@ -1,0 +1,12 @@
+FEB 13, 2018
+Pending:
+- Create Wait Task
+    - When folder is created task does not finish yet.
+- Create ISCSI Server script
+- working on invoke-vmscript
+-
+Fixed:
+- Created script to upload file to guest vm
+    - file upload script only work with overwrite set to True
+    script will error out when file already exist, if set overwrite to False
+    it will not even work.
