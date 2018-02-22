@@ -46,7 +46,7 @@
     },
     "iscsiserver":{
         "ip": "10.10.10.10",
-        "name": "iscsitore01"
+        "name": "ans-iscsi01"
   },
   "datastore": "Nested-Datastore01"
 }

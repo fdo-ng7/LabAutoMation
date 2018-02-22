@@ -433,7 +433,7 @@ def main():
 
     content = service_instance.RetrieveContent()
     datacenter = content.rootFolder.childEntity[0]
-    vmfolder = get_obj(content, [vim.Folder], location)
+    vmfolder = get_obj(content, [vim.Folder], args.location)
     if vmfolder is None:
         vmfolder = datacenter.vmFolder
 

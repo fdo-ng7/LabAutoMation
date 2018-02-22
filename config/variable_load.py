@@ -10,7 +10,7 @@
 """
 import json
 import os
-jsonfile = "qalabasr-config.json"
+jsonfile = "ndc-config.json"
 script_path = os.path.dirname(os.path.abspath(__file__))
 # print script_path
 jsonpath = script_path + "/" + jsonfile

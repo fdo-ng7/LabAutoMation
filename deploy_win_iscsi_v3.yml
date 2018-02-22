@@ -1,0 +1,210 @@
+# """
+#  Playbook to Build ISCSI servers
+#  Requirements: modified vmware_guest.py with upload, fetch and runcmd updates
+#  Task: Deploy VM from Template, Upload PS1 script, Run Script
+#  Updates:
+#       Running against v2.5.0b1
+# """
+---
+- name: Deploy Windows ISCSI Server
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    vcenter_ip: 10.159.81.248
+    vcenter_user: ansible@vsphere.local
+    vcenter_password: 'Passw0rd!'
+    datacenter: NestedDC-NET2Lab
+    cluster: Cluster1
+    folder: NestedDC-NET2Lab/vm/ndclab
+    datastore: Nested-Datastore01
+    template: Jun2013_T-WIN-2012-DATACTR-64-2-4-50
+    port_group: VTest
+    vm_name: ans-iscsi01
+    vm_user: administrator
+    vm_password: "Passw0rd!"
+    vm_network: "10.10.10.0/24"
+    vm_ip: 10.10.10.100
+    vm_gateway: 10.10.10.1
+    vm_netmask: 255.255.255.0
+    vm_dns1: 10.10.10.12
+    vm_dns2: 10.10.10.13
+    vm_cpu: "4"
+    vm_mem: "4096"
+    vm_hdd1_size: 50
+    vm_hdd2_size: 10
+    vm_hdd3_size: 10
+    vm_domain: makinet
+
+  tasks:
+
+
+  # """
+  #   000 - This Playbook deploys from template, adds hard drives and customization.
+  # """
+  - name: 000 - Cloning VM From Template
+    vmware_guest:
+        hostname: "{{ vcenter_ip }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        datacenter: "{{ datacenter }}"
+        folder: "{{ folder }}"
+        cluster: "{{ cluster }}"
+        name: "{{ vm_name }}"
+        template: "{{ template }}"
+        wait_for_ip_address: yes
+        hardware:
+          memory_mb: "{{ vm_mem }}"
+          num_cpus: "{{ vm_cpu }}"
+          scsi: lsilogicsas
+        disk:
+        - size_gb: "{{ vm_hdd1_size }}"
+          type: thin
+          autoselect_datastore: yes
+          datastore: "{{ datastore }}"
+        - size_gb: "{{ vm_hdd2_size }}"
+          type: thin
+          autoselect_datastore: yes
+          datastore: "{{ datastore }}"
+        - size_gb: "{{ vm_hdd3_size }}"
+          type: thin
+          autoselect_datastore: yes
+          datastore: "{{ datastore }}"
+        networks:
+        - name: "{{ port_group }}"
+          ip: "{{ vm_ip }}"
+          netmask: "{{ vm_netmask }}"
+          gateway: "{{ vm_gateway }}"
+          domain: "{{ vm_domain }}"
+          dns_servers:
+          - "{{ vm_dns1 }}"
+          - "{{ vm_dns2 }}"
+        customization:
+          autologon: yes
+          dns_servers:
+          - "{{ vm_dns1 }}"
+          - "{{ vm_dns2 }}"
+          domain: "{{ vm_domain }}"
+          password: "{{ vm_password }}"
+          runonce:
+          - powershell.exe -ExecutionPolicy Unrestricted -File C:\Windows\Temp\ConfigureRemotingForAnsible.ps1 -ForceNewSSLCert -EnableCredSSP
+          - powershell.exe Set-ExecutionPolicy Bypass -Force
+    register: results
+
+  - name: Deployment results
+    debug:
+        msg: '{{ results }}'
+
+
+  # Gather facts only
+  - name: gather the VM facts
+    vmware_guest_facts:
+        hostname: "{{ vcenter_ip }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ datacenter }}"
+        folder: "{{ folder }}"
+        validate_certs: no
+        name: "{{ vm_name }}"
+    register: facts
+
+  - name: Print facts content
+    debug:
+        msg: '{{ facts  }}'
+
+  # - name: Assign Variables
+  #   set_fact:
+  #     hw_guest_full_name: "{{ facts| json_query('instance.hw_guest_full_name') }}"
+  #     hw_guest_id: "{{ facts| json_query('instance.hw_guest_id') }}"
+  #     hw_guest_ip: "{{ facts| json_query('instance.ipv4') }}"
+  #     ip: "{{ facts| json_query('instance.ipv4') }}"
+  #   with_items: "{{ facts }}"
+
+
+  - name: Wait until Correct IP is shown
+    vmware_guest_facts:
+        hostname: "{{ vcenter_ip }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ datacenter }}"
+        folder: "{{ folder }}"
+        validate_certs: no
+        name: "{{ vm_name }}"
+    register: output
+    until: output | json_query('instance.ipv4') == "{{ vm_ip }}" != -1
+    # this works:
+    #until: output.stdout.split()|length < 2
+    retries: 10
+    delay: 30
+    ignore_errors: true
+
+
+
+  - name: 010 - Run Command in Guest - Create Folder
+    vmware_guest_file_operation:
+        hostname: "{{ vcenter_ip }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ datacenter }}"
+        validate_certs: no
+        vm_id: "{{ vm_name }}"
+        vm_username: "{{ vm_user }}"
+        vm_password: "{{ vm_password }}"
+        directory:
+          path: 'c:\DataStores'
+          operation: create
+          recurse: no
+    register: result
+
+
+  - name: 011 - Upload iscsi_node_build.ps1 files
+    vmware_guest_file_operation:
+        hostname: "{{ vcenter_ip }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ datacenter }}"
+        validate_certs: no
+        vm_id: "{{ vm_name }}"
+        vm_username: "{{ vm_user }}"
+        vm_password: "{{ vm_password }}"
+        copy:
+          src: './iscsi_node_build.ps1'
+          dest: 'c:\DataStores\iscsi_node_build.ps1'
+          overwrite: True
+    register: result
+
+
+  - name: 012 - Run Command in Guest - Run ISCSI PS1 file
+    vmware_vm_shell:
+        hostname: "{{ vcenter_ip }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ datacenter }}"
+        validate_certs: no
+        vm_id: "{{ vm_name }}"
+        vm_username: "{{ vm_user }}"
+        vm_password: "{{ vm_password }}"
+        vm_shell: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+        vm_shell_args: 'c:\DataStores\iscsi_node_build.ps1'
+        # vm_shell_env:
+        #   - "PATH=/bin"
+        #   - "VAR=test"
+        # vm_shell_cwd: "/tmp"
+        #cmd_path: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+        #cmd_args: 'c:\DataStores\iscsi_node_build.ps1'
+        #cmd_cwd: ''
+        #cmd_env: ''
+    register: result
+
+
+############################
+  #
+  # - name: Gather all registered virtual machines
+  #   vmware_vm_facts:
+  #     hostname: 10.159.18.51
+  #     username: administrator@vsphere.local
+  #     password: "Pa$$123[]"
+  #     validate_certs: no
+  #   #delegate_to: localhost
+  #   register: vmfacts

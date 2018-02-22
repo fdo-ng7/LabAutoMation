@@ -141,8 +141,19 @@ def main():
 
         # Power On VM
         task = vmobj.PowerOn()
-    return 0
 
+    # RUN ANSIBLE Playbook
+    # https://stackoverflow.com/questions/27590039/running-ansible-playbook-using-python-api
+
+    print "020 - Deploy ISCSI Server via Ansible"
+    # import ansible.playbook
+    # pb = PlayBook(playbook='./deploy_win_iscsi_v3.yml')
+    # pb.run()
+
+    from subprocess import call
+
+    call(["ansible-playbook", "deploy_win_iscsi_v3.yml"])
+    return 0
 
 
 # Start program

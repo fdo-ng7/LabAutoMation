@@ -408,7 +408,7 @@ def main():
     resource_pool = hosts[0].resourcePool
 
     # Initializing Variable Load
-    #foldername = basename
+    # foldername = basename
     dstore = dest_datastore
 
     # print "002 - Start Build DC Process"
@@ -479,7 +479,7 @@ def main():
     downloadfile_file = "c:\\testfile.txt"
     dest_path = "testfile234.txt"
     uuid = None
-    #upload_file_to_vm(content, iscsivm, uuid, upload_file, vm_path)
+    # upload_file_to_vm(content, iscsivm, uuid, upload_file, vm_path)
 
     # def fetch_file_from_guest(self, vm, username, password, src, dest):
     # fetch_file_from_guest()
@@ -497,18 +497,23 @@ def main():
         vm = search_index.FindByUuid(None, uuid, True)
         print vm
     elif iscsivm:
-        #content = si.RetrieveContent()
+        # content = si.RetrieveContent()
         vm = get_obj(content, [vim.VirtualMachine], iscsivm)
 
     print vm
     username = "administrator"
     password = "Passw0rd!"
     program_path = 'c:\Windows\System32\WindowsPowerShell\\v1.0\powershell.exe'
-    program_args = "get-childitems c:\\"
+    #"remove-item c:\\testfile.txt -force"
+    program_args = "New-Item -ItemType Directory c:\\Temp1  -force; " + \
+        "New-Item -ItemType Directory c:\Temp2\ -force; " + \
+        "Remove-Item C:\Temp2 -force"
+
     program_cwd = None
     program_env = None
     run_command_in_guest(content, vm, username, password, program_path,
                          program_args, program_cwd, program_env)
+
 
     # Start program
 if __name__ == "__main__":

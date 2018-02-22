@@ -10,3 +10,4 @@ Fixed:
     - file upload script only work with overwrite set to True
     script will error out when file already exist, if set overwrite to False
     it will not even work.
+- Referene File: https://code.vt.edu/nis-ansible-roles/upstream-ansible/blob/7603ae33b574893a8afcfa1fb680a19380658d12/lib/ansible/modules/cloud/vmware/vmware_guest.py
