@@ -12,7 +12,7 @@
   gather_facts: False
   vars:
     vcenter_ip: 10.159.81.248
-    vcenter_user: ansible@vsphere.local
+    vcenter_user: ansible1@vsphere.local
     vcenter_password: 'Passw0rd!'
     datacenter: NestedDC-NET2Lab
     cluster: Cluster1
@@ -20,21 +20,21 @@
     datastore: Nested-Datastore01
     template: Jun2013_T-WIN-2012-DATACTR-64-2-4-50
     port_group: VTest
-    vm_name: ans-iscsi01
+    vm_name: gndc65isc01
     vm_user: administrator
     vm_password: "Passw0rd!"
-    vm_network: "10.10.10.0/24"
-    vm_ip: 10.10.10.100
-    vm_gateway: 10.10.10.1
+    vm_network: "10.158.40.0/24"
+    vm_ip: 10.158.40.71
+    vm_gateway: 10.158.40.1
     vm_netmask: 255.255.255.0
-    vm_dns1: 10.10.10.12
-    vm_dns2: 10.10.10.13
+    vm_dns1: 10.159.81.20
+    vm_dns2: ""
     vm_cpu: "4"
     vm_mem: "4096"
-    vm_hdd1_size: 50
-    vm_hdd2_size: 10
-    vm_hdd3_size: 10
-    vm_domain: makinet
+    vm_hdd1_size: 500
+    vm_hdd2_size: 500
+    vm_hdd3_size: 500
+    vm_domain: ashlab.ops
 
   tasks:
 
@@ -169,7 +169,7 @@
         vm_username: "{{ vm_user }}"
         vm_password: "{{ vm_password }}"
         copy:
-          src: './iscsi_node_build.ps1'
+          src: './scripts/iscsi_node_build.ps1'
           dest: 'c:\DataStores\iscsi_node_build.ps1'
           overwrite: True
     register: result

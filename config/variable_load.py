@@ -10,7 +10,7 @@
 """
 import json
 import os
-jsonfile = "ndc-config.json"
+jsonfile = "gndc65.json"
 script_path = os.path.dirname(os.path.abspath(__file__))
 # print script_path
 jsonpath = script_path + "/" + jsonfile

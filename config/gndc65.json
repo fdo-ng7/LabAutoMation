@@ -1,7 +1,7 @@
 {
   "config": {
-    "basename" : "ndclab",
-    "foldername" : "ndclab"
+    "basename" : "gndc65",
+    "foldername" : "GNDCLabLab-v6.5"
   },
   "physical": {
     "vcenter": {
@@ -14,39 +14,36 @@
   "nested": {
     "esxi": [
       {
-        "ip": "10.10.10.11"
+        "ip": "10.158.40.75"
       },
       {
-        "ip": "10.10.10.12"
-      },
-      {
-        "ip": "10.10.10.13"
+        "ip": "10.158.40.76"
       }
       ],
       "config": {
         "cpu": 4,
         "mem": 16384,
-        "esxversion":  "ESXi6.0u2",
+        "esxversion":  "ESXi6.5u1",
         "nic_count": "2",
         "nic_type": "VMXNET3",
         "rootpw": "VMWare1!",
-        "vmx_version": "vmx-11",
-        "guestid": "vmkernel6Guest"
+        "vmx_version": "vmx-13",
+        "guestid": "vmkernel65Guest"
       }
     },
-    "vcip": "10.10.10.10",
-    "iscsiip": "10.10.10.100",
+    "vcip": "10.158.40.70",
+    "iscsiip": "10.158.40.71",
     "network": {
       "portgroup" : "VTest",
-      "pg_vlan" : "33",
-      "gateway": "10.10.10.1",
+      "pg_vlan" : "40",
+      "gateway": "10.158.40.1",
       "subnet": "255.255.255.0",
       "dns": "10.159.81.20",
       "ntp": ""
     },
     "iscsiserver":{
-        "ip": "10.10.10.10",
-        "name": "ans-iscsi01"
+        "ip": "10.158.40.71",
+        "name": "gndc65isc01"
   },
   "datastore": "Nested-Datastore01"
 }

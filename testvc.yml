@@ -1,0 +1,16 @@
+---
+- hosts: all
+  gather_facts: false
+  connection: local
+  user: remote
+  sudo: true
+
+  tasks:
+
+    - vmware_guest_find:
+        hostname: 192.168.1.248
+        username: administrator@vsphere.local
+        password: Passw0rd!
+        validate_certs: no
+        name: Luan-Temp
+      register: vm_folder

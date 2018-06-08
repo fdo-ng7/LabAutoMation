@@ -1,7 +1,7 @@
 {
   "config": {
-    "basename" : "ndclab",
-    "foldername" : "ndclab"
+    "basename" : "gndc60",
+    "foldername" : "GNDCLabLab-v6.0"
   },
   "physical": {
     "vcenter": {
@@ -14,13 +14,10 @@
   "nested": {
     "esxi": [
       {
-        "ip": "10.10.10.11"
+        "ip": "10.158.40.65"
       },
       {
-        "ip": "10.10.10.12"
-      },
-      {
-        "ip": "10.10.10.13"
+        "ip": "10.158.40.66"
       }
       ],
       "config": {
@@ -34,19 +31,19 @@
         "guestid": "vmkernel6Guest"
       }
     },
-    "vcip": "10.10.10.10",
-    "iscsiip": "10.10.10.100",
+    "vcip": "10.158.40.60",
+    "iscsiip": "10.158.40.61",
     "network": {
       "portgroup" : "VTest",
-      "pg_vlan" : "33",
-      "gateway": "10.10.10.1",
+      "pg_vlan" : "40",
+      "gateway": "10.158.40.1",
       "subnet": "255.255.255.0",
       "dns": "10.159.81.20",
       "ntp": ""
     },
     "iscsiserver":{
-        "ip": "10.10.10.10",
-        "name": "ans-iscsi01"
+        "ip": "10.158.40.61",
+        "name": "gndc60isc01"
   },
   "datastore": "Nested-Datastore01"
 }
